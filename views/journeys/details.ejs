@@ -1,0 +1,92 @@
+<%- include('../partials/head', { title: 'Journey details' }) %>
+<%- include('../partials/nav', { currentUser, isAdmin, active: 'journeys' }) %>
+
+<%
+  const fmt0 = (n) => (Number.isFinite(Number(n)) ? Number(n).toLocaleString() : "—");
+  const fmt1 = (n) => (Number.isFinite(Number(n)) ? Number(n).toFixed(1) : "—");
+%>
+
+<main class="page">
+  <div class="container-wide">
+    <div class="page-header">
+      <h1 class="page-title">Journey details</h1>
+      <p class="page-subtitle">Summary of route, mode, and estimated emissions.</p>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title"><%= journey.origin %> → <%= journey.destination %></h2>
+          <p class="card-desc">
+            Created: <%= journey.createdAt ? new Date(journey.createdAt).toLocaleString() : '—' %>
+          </p>
+        </div>
+
+        <div class="inline inline-end">
+          <a class="btn btn-secondary" href="/journeys">Back</a>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="emission-panel">
+          <div>
+            <div class="meta">Estimated emissions</div>
+            <div class="big"><%= fmt0(journey.estimatedEmissions) %> g CO₂e</div>
+            <div class="meta">
+              <span class="badge badge-ok"><span class="dot"></span>Indicative estimate</span>
+              <span class="help ml-8">distance × factor</span>
+            </div>
+          </div>
+
+          <div class="text-right">
+            <div class="meta">Mode</div>
+            <div class="fw-900 fs-105">
+              <%= journey.modeRef?.name || '—' %>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="grid grid-3 mt-18">
+          <div class="card stat">
+            <div class="label">Distance</div>
+            <div class="value"><%= fmt1(journey.distanceKm) %></div>
+            <div class="hint">Kilometres</div>
+          </div>
+
+          <div class="card stat">
+            <div class="label">Emission factor</div>
+            <div class="value"><%= fmt0(journey.emissionFactorUsed) %></div>
+            <div class="hint">g CO₂e per km</div>
+          </div>
+
+          <div class="card stat">
+            <div class="label">Route</div>
+            <div class="value fs-110 fw-900">
+              <%= journey.origin %> → <%= journey.destination %>
+            </div>
+            <div class="hint">Journey summary</div>
+          </div>
+        </div>
+
+        <p class="help mt-14">
+          Note: This is an indicative estimate based on prototype factors (distance × factor).
+        </p>
+      </div>
+
+      <div class="card-footer">
+        <form method="POST" action="/journeys/<%= journey._id %>/delete" class="mr-auto">
+          <button class="btn btn-danger" type="submit" data-confirm="Delete this journey?">
+            Delete
+          </button>
+        </form>
+
+        <a class="btn btn-primary" href="/journeys/new">+ New journey</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

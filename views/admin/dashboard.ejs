@@ -1,0 +1,123 @@
+<%- include('../partials/head', { title: 'Admin dashboard' }) %>
+<%- include('../partials/nav', { currentUser, isAdmin, active: 'adminDashboard' }) %>
+
+<%
+  const statsSafe = (typeof stats !== "undefined" && stats) ? stats : {};
+  const latestSafe = (typeof latestJourneys !== "undefined" && latestJourneys) ? latestJourneys : [];
+  const modesSafe = (typeof modeSummary !== "undefined" && modeSummary) ? modeSummary : [];
+
+  const fmt0 = (n) => (Number.isFinite(Number(n)) ? Number(n).toLocaleString() : "0");
+  const fmtMaybe = (n) => (Number.isFinite(Number(n)) ? Number(n).toLocaleString() : "—");
+
+  const activeModesCount = modesSafe.filter(m => m && m.active).length;
+%>
+
+<main class="page">
+  <div class="container-wide">
+    <div class="page-header">
+      <h1 class="page-title">Admin dashboard</h1>
+      <p class="page-subtitle">Manage modes, review system usage, and moderate accounts.</p>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <div class="grid grid-4">
+      <div class="card stat">
+        <div class="label">Total users</div>
+        <div class="value"><%= fmt0(statsSafe.totalUsers ?? 0) %></div>
+        <div class="hint">All accounts</div>
+      </div>
+      <div class="card stat">
+        <div class="label">Active users</div>
+        <div class="value"><%= fmt0(statsSafe.activeUsers ?? 0) %></div>
+        <div class="hint">Currently active</div>
+      </div>
+      <div class="card stat">
+        <div class="label">Total journeys</div>
+        <div class="value"><%= fmt0(statsSafe.totalJourneys ?? 0) %></div>
+        <div class="hint">Submitted journeys</div>
+      </div>
+      <div class="card stat">
+        <div class="label">Suspended users</div>
+        <div class="value"><%= fmt0(statsSafe.suspendedUsers ?? 0) %></div>
+        <div class="hint">Moderation</div>
+      </div>
+    </div>
+
+    <div class="grid grid-2 mt-18">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Latest journeys</h2>
+            <p class="card-desc">Most recent submissions across users.</p>
+          </div>
+          <a class="btn btn-secondary" href="/admin/journeys">View all</a>
+        </div>
+
+        <div class="card-body">
+          <% if (!latestSafe.length) { %>
+            <p class="help">No journeys found.</p>
+          <% } else { %>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Route</th>
+                    <th>Mode</th>
+                    <th>Emissions (g)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% latestSafe.forEach(j => { %>
+                    <tr>
+                      <td><%= j.userRef?.email || '—' %></td>
+                      <td><strong><%= j.origin %></strong> → <%= j.destination %></td>
+                      <td><%= j.modeRef?.name || '—' %></td>
+                      <td><%= fmtMaybe(j.estimatedEmissions) %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="inline inline-start gap-10">
+              <h2 class="card-title m-0">Mode status</h2>
+              <span class="badge badge-muted"><span class="dot"></span>Active: <%= activeModesCount %></span>
+            </div>
+            <p class="card-desc">Active modes available for public users.</p>
+          </div>
+          <a class="btn btn-secondary" href="/admin/modes">Manage</a>
+        </div>
+
+        <div class="card-body">
+          <% if (!modesSafe.length) { %>
+            <p class="help">No modes found.</p>
+          <% } else { %>
+            <div class="grid grid-2">
+              <% modesSafe.forEach(m => { %>
+                <div class="chip">
+                  <span class="badge <%= m.active ? 'badge-ok' : 'badge-muted' %>">
+                    <span class="dot"></span><%= m.active ? 'Active' : 'Inactive' %>
+                  </span>
+                  <div>
+                    <strong><%= m.name %></strong>
+                    <div class="help"><%= fmtMaybe(m.emissionFactor) %> g/km</div>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,134 @@
+<%- include('partials/head', { title: 'Home' }) %>
+
+<%
+  // Read auth/role info from res.locals (set in app.js middleware)
+  const currentUserSafe =
+    (typeof locals !== "undefined" && locals.currentUser) ? locals.currentUser : null;
+
+  const isAdminSafe =
+    (typeof locals !== "undefined" && typeof locals.isAdmin !== "undefined") ? !!locals.isAdmin : false;
+%>
+
+<%- include('partials/nav', { currentUser: currentUserSafe, isAdmin: isAdminSafe, active: 'home' }) %>
+
+<main class="page">
+  <div class="container-wide">
+    <div class="page-header">
+      <h1 class="page-title">Low-carbon travel, made simple.</h1>
+      <p class="page-subtitle">
+        Create journeys, compare transport modes, and see an indicative emissions estimate. Track your past journeys and make greener choices.
+      </p>
+    </div>
+
+    <%- include('partials/alerts') %>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="grid grid-2">
+          <div>
+            <h2 class="card-title m-0 mb-6">Start in under a minute</h2>
+            <p class="card-desc m-0">
+              Register, add your journey details (origin, destination, mode, distance), and instantly see the estimated emissions.
+            </p>
+
+            <div class="inline mt-18">
+              <% if (!currentUserSafe) { %>
+                <a class="btn btn-primary" href="/login">Sign in</a>
+                <a class="btn btn-secondary" href="/register">Create account</a>
+              <% } else if (!isAdminSafe) { %>
+                <a class="btn btn-primary" href="/dashboard">Go to dashboard</a>
+                <a class="btn btn-secondary" href="/journeys/new">New journey</a>
+              <% } else { %>
+                <a class="btn btn-primary" href="/admin/dashboard">Admin dashboard</a>
+                <a class="btn btn-secondary" href="/admin/modes">Manage modes</a>
+              <% } %>
+            </div>
+
+            <p class="help mt-14">
+              Tip: Emissions are indicative and based on the factor for your selected mode.
+            </p>
+          </div>
+
+          <div class="emission-panel">
+            <div>
+              <div class="meta">Example estimate</div>
+              <div class="big">820 g CO₂e</div>
+              <div class="meta">10 km by Bus (82 g/km)</div>
+            </div>
+            <span class="badge badge-ok"><span class="dot"></span>Indicative data</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-3 mt-18">
+      <div class="card stat">
+        <div class="label">Create journeys</div>
+        <div class="value">Fast</div>
+        <div class="hint">Simple form, quick estimate, easy saving.</div>
+      </div>
+      <div class="card stat">
+        <div class="label">Compare modes</div>
+        <div class="value">Clear</div>
+        <div class="hint">See emissions based on provided factors.</div>
+      </div>
+      <div class="card stat">
+        <div class="label">Track history</div>
+        <div class="value">Useful</div>
+        <div class="hint">Review journeys and details anytime.</div>
+      </div>
+    </div>
+
+    <div class="card mt-18">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">How it works</h2>
+          <p class="card-desc">Three quick steps to estimate and track emissions.</p>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="grid grid-3">
+          <div class="card card-flat">
+            <div class="card-body">
+              <div class="inline inline-start gap-10 m-0 mb-10">
+                <span class="badge badge-ok"><span class="dot"></span>Step 1</span>
+                <strong>Sign in</strong>
+              </div>
+              <p class="help m-0">
+                Create an account or log in to access your dashboard and saved journeys.
+              </p>
+            </div>
+          </div>
+
+          <div class="card card-flat">
+            <div class="card-body">
+              <div class="inline inline-start gap-10 m-0 mb-10">
+                <span class="badge badge-ok"><span class="dot"></span>Step 2</span>
+                <strong>Create a journey</strong>
+              </div>
+              <p class="help m-0">
+                Enter origin, destination, mode and distance to generate an indicative estimate.
+              </p>
+            </div>
+          </div>
+
+          <div class="card card-flat">
+            <div class="card-body">
+              <div class="inline inline-start gap-10 m-0 mb-10">
+                <span class="badge badge-ok"><span class="dot"></span>Step 3</span>
+                <strong>Review &amp; track</strong>
+              </div>
+              <p class="help m-0">
+                View details, compare modes and keep a journey history for future reference.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,113 @@
+<%- include('../partials/head', { title: 'New journey' }) %>
+<%- include('../partials/nav', { currentUser, isAdmin, active: 'newJourney' }) %>
+
+<%
+  const v = (typeof values !== "undefined" && values) ? values : {};
+%>
+
+<main class="page">
+  <div class="container-wide">
+    <div class="page-header">
+      <h1 class="page-title">Create a journey</h1>
+      <p class="page-subtitle">Enter your route, select a mode, and see the estimated emissions.</p>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Journey details</h2>
+          <p class="card-desc">Prototype uses indicative emission factors provided by the authority.</p>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <form method="POST" action="/journeys" novalidate>
+          <div class="grid grid-2">
+            <div>
+              <div class="form-row">
+                <label for="origin">Origin</label>
+                <input
+                  class="input"
+                  id="origin"
+                  name="origin"
+                  type="text"
+                  required
+                  placeholder="e.g., Blackburn"
+                  value="<%= v.origin || '' %>"
+                  autocomplete="address-level2"
+                />
+              </div>
+
+              <div class="form-row">
+                <label for="destination">Destination</label>
+                <input
+                  class="input"
+                  id="destination"
+                  name="destination"
+                  type="text"
+                  required
+                  placeholder="e.g., Bolton"
+                  value="<%= v.destination || '' %>"
+                  autocomplete="address-level2"
+                />
+              </div>
+            </div>
+
+            <div>
+              <div class="form-row">
+                <label for="mode">Transport mode</label>
+                <select id="mode" name="modeId" required data-mode>
+                  <% (modes || []).forEach(m => { %>
+                    <option
+                      value="<%= m._id %>"
+                      data-factor="<%= m.emissionFactor %>"
+                      <%= String(v.modeId || '') === String(m._id) ? 'selected' : '' %>
+                    >
+                      <%= m.name %> (<%= m.emissionFactor %> g/km)
+                    </option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div class="form-row">
+                <label for="distanceKm">Distance (km)</label>
+                <input
+                  class="input"
+                  id="distanceKm"
+                  name="distanceKm"
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  required
+                  placeholder="e.g., 10"
+                  data-distance
+                  inputmode="decimal"
+                  value="<%= (v.distanceKm ?? '') %>"
+                />
+                <div class="help">Enter the journey distance manually for the prototype.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="emission-panel mt-18">
+            <div>
+              <div class="meta">Estimated emissions</div>
+              <div class="big"><span data-emissions-output>0</span> g CO₂e</div>
+              <div class="meta">Using factor: <span data-factor-output>0</span> g/km</div>
+            </div>
+            <span class="badge badge-ok"><span class="dot"></span>Live estimate</span>
+          </div>
+
+          <div class="card-footer mt-18">
+            <a class="btn btn-secondary" href="/journeys">Cancel</a>
+            <button class="btn btn-primary" type="submit">Save journey</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

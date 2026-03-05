@@ -1,0 +1,81 @@
+<%- include('../partials/head', { title: (mode && mode._id) ? 'Edit mode' : 'Add mode' }) %>
+<%- include('../partials/nav', { currentUser, isAdmin, active: 'adminModes' }) %>
+
+<%
+  // Safe defaults (controller may pass mode with entered values on validation errors)
+  const m = (typeof mode !== "undefined" && mode) ? mode : null;
+
+  // Only show status for existing (saved) modes
+  const hasId = !!(m && m._id);
+  const isActive = hasId ? !!m.active : null;
+%>
+
+<main class="page">
+  <div class="container-wide">
+    <div class="page-header">
+      <h1 class="page-title"><%= hasId ? 'Edit mode' : 'Add mode' %></h1>
+      <p class="page-subtitle">Define a mode name and emission factor (g CO₂e per km).</p>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <div class="card maxw-720">
+      <div class="card-body">
+        <form method="POST" action="<%= hasId ? `/admin/modes/${m._id}` : '/admin/modes' %>" novalidate>
+          <div class="form-row">
+            <label for="name">Mode name</label>
+            <input
+              class="input"
+              id="name"
+              name="name"
+              type="text"
+              required
+              autocomplete="off"
+              placeholder="e.g., Bus"
+              value="<%= m?.name ?? '' %>"
+            />
+          </div>
+
+          <div class="form-row">
+            <label for="emissionFactor">Emission factor (g/km)</label>
+            <input
+              class="input"
+              id="emissionFactor"
+              name="emissionFactor"
+              type="number"
+              step="0.01"
+              min="0"
+              required
+              inputmode="decimal"
+              placeholder="e.g., 82"
+              value="<%= m?.emissionFactor ?? '' %>"
+            />
+            <div class="help">Example: Bus 82, Train 41, Car (petrol) 171, Walking 0.</div>
+          </div>
+
+          <% if (hasId) { %>
+            <div class="form-row">
+              <div class="help">Current status</div>
+              <span class="badge <%= isActive ? 'badge-ok' : 'badge-muted' %>">
+                <span class="dot"></span><%= isActive ? 'Active' : 'Inactive' %>
+              </span>
+            </div>
+          <% } %>
+
+          <div class="form-actions">
+            <a class="btn btn-secondary" href="/admin/modes">Cancel</a>
+            <button class="btn btn-primary" type="submit">Save</button>
+          </div>
+        </form>
+
+        <% if (hasId) { %>
+          <p class="help mt-12">
+            Status is changed from the modes list (Activate/Deactivate).
+          </p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

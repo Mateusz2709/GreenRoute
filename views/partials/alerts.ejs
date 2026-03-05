@@ -1,0 +1,42 @@
+<% const m = (typeof messages !== "undefined" && messages) ? messages : {}; %>
+<% const errs = (typeof errors !== "undefined" && errors && errors.length) ? errors : []; %>
+
+<% if (m.success) { %>
+  <div class="alert alert-success" role="status" aria-live="polite">
+    <div class="alert-body">
+      <strong>Success</strong>
+      <p><%= m.success %></p>
+    </div>
+    <button class="alert-close" type="button" data-alert-close aria-label="Close">×</button>
+  </div>
+<% } %>
+
+<% if (m.info) { %>
+  <div class="alert alert-info" role="status" aria-live="polite">
+    <div class="alert-body">
+      <strong>Info</strong>
+      <p><%= m.info %></p>
+    </div>
+    <button class="alert-close" type="button" data-alert-close aria-label="Close">×</button>
+  </div>
+<% } %>
+
+<% if (m.error) { %>
+  <div class="alert alert-error" role="alert" aria-live="assertive">
+    <div class="alert-body">
+      <strong>Something went wrong</strong>
+      <p><%= m.error %></p>
+    </div>
+    <button class="alert-close" type="button" data-alert-close aria-label="Close">×</button>
+  </div>
+<% } %>
+
+<% if (errs.length) { %>
+  <div class="alert alert-error" role="alert" aria-live="assertive">
+    <div class="alert-body">
+      <strong>Please fix the following:</strong>
+      <p><%= errs.join(" • ") %></p>
+    </div>
+    <button class="alert-close" type="button" data-alert-close aria-label="Close">×</button>
+  </div>
+<% } %>

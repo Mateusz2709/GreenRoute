@@ -1,0 +1,123 @@
+<%- include('../partials/head', { title: 'Modes' }) %>
+<%- include('../partials/nav', { currentUser, isAdmin, active: 'adminModes' }) %>
+
+<%
+  const modesSafe = (typeof modes !== "undefined" && modes) ? modes : [];
+
+  const paginationSafe =
+    (typeof pagination !== "undefined" && pagination)
+      ? pagination
+      : { page: 1, totalPages: 1, total: 0 };
+
+  const fmtMaybe = (n) => (Number.isFinite(Number(n)) ? Number(n).toLocaleString() : "—");
+  const activeCount = modesSafe.filter(m => m && m.active).length;
+%>
+
+<main class="page">
+  <div class="container-wide">
+    <div class="page-header">
+      <h1 class="page-title">Transport modes</h1>
+      <p class="page-subtitle">Add/edit emission factors and control which modes are active.</p>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="inline inline-start gap-10">
+            <h2 class="card-title m-0">Modes</h2>
+            <span class="badge badge-muted"><span class="dot"></span>Active: <%= activeCount %></span>
+          </div>
+          <p class="card-desc">The emission factors are used to calculate journey emissions (distance × factor).</p>
+        </div>
+        <a class="btn btn-primary" href="/admin/modes/new">+ Add mode</a>
+      </div>
+
+      <div class="card-body">
+        <% if (!modesSafe.length) { %>
+          <p class="help">No modes found.</p>
+        <% } else { %>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Emission factor (g/km)</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% modesSafe.forEach(m => { %>
+                  <tr>
+                    <td><strong><%= m.name %></strong></td>
+                    <td><%= fmtMaybe(m.emissionFactor) %></td>
+                    <td>
+                      <span class="badge <%= m.active ? 'badge-ok' : 'badge-muted' %>">
+                        <span class="dot"></span><%= m.active ? 'Active' : 'Inactive' %>
+                      </span>
+                    </td>
+                    <td class="actions">
+                      <a class="btn btn-secondary" href="/admin/modes/<%= m._id %>/edit">Edit</a>
+
+                      <form method="POST" action="/admin/modes/<%= m._id %>/toggle" class="inline-form">
+                        <input type="hidden" name="page" value="<%= paginationSafe.page || 1 %>">
+                        <button
+                          class="btn btn-danger"
+                          type="submit"
+                          data-confirm="Change active status for this mode?"
+                        >
+                          <%= m.active ? 'Deactivate' : 'Activate' %>
+                        </button>
+                      </form>
+
+                      <form method="POST" action="/admin/modes/<%= m._id %>/delete" class="inline-form">
+                        <input type="hidden" name="page" value="<%= paginationSafe.page || 1 %>">
+                        <button
+                          class="btn btn-danger"
+                          type="submit"
+                          data-confirm="Delete this mode? This cannot be undone."
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+
+          <% if (paginationSafe.totalPages > 1) { %>
+            <div class="pager mt-12">
+              <% if (paginationSafe.page > 1) { %>
+                <a class="btn btn-secondary" href="/admin/modes?page=<%= paginationSafe.page - 1 %>">← Prev</a>
+              <% } else { %>
+                <button class="btn btn-secondary" disabled>← Prev</button>
+              <% } %>
+
+              <span class="help mx-10">
+                Page <strong><%= paginationSafe.page %></strong> of <strong><%= paginationSafe.totalPages %></strong>
+                (<%= paginationSafe.total %> total)
+              </span>
+
+              <% if (paginationSafe.page < paginationSafe.totalPages) { %>
+                <a class="btn btn-secondary" href="/admin/modes?page=<%= paginationSafe.page + 1 %>">Next →</a>
+              <% } else { %>
+                <button class="btn btn-secondary" disabled>Next →</button>
+              <% } %>
+            </div>
+          <% } %>
+
+          <p class="help mt-12">
+            Tip: If a mode is already used by existing journeys, the system will block deletion to preserve history.
+            In that case, set it to inactive instead.
+          </p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

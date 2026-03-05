@@ -1,0 +1,197 @@
+<%- include('../partials/head', { title: 'Journeys' }) %>
+<%- include('../partials/nav', { currentUser, isAdmin, active: 'journeys' }) %>
+
+<%
+  const filtersSafe =
+    (typeof filters !== "undefined" && filters)
+      ? filters
+      : { query: "", mode: "", sort: "date_desc" };
+
+  const modesSafe =
+    (typeof modes !== "undefined" && modes)
+      ? modes
+      : [];
+
+  const paginationSafe =
+    (typeof pagination !== "undefined" && pagination)
+      ? pagination
+      : { page: 1, totalPages: 1, total: 0 };
+
+  const currentPage = paginationSafe.page || 1;
+
+  const qs =
+    `query=${encodeURIComponent(filtersSafe.query || "")}` +
+    `&mode=${encodeURIComponent(filtersSafe.mode || "")}` +
+    `&sort=${encodeURIComponent(filtersSafe.sort || "date_desc")}`;
+
+  const hasFilters =
+    (filtersSafe.query && filtersSafe.query.trim().length) ||
+    (filtersSafe.mode && String(filtersSafe.mode).length) ||
+    (filtersSafe.sort && filtersSafe.sort !== "date_desc");
+
+  const fmt0 = (n) => (Number.isFinite(Number(n)) ? Number(n).toLocaleString() : "—");
+  const fmt1 = (n) => (Number.isFinite(Number(n)) ? Number(n).toFixed(1) : "—");
+%>
+
+<main class="page">
+  <div class="container-wide">
+    <div class="page-header">
+      <h1 class="page-title">Journeys</h1>
+      <p class="page-subtitle">Review your saved journeys and emissions estimates.</p>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="inline inline-start gap-10">
+            <h2 class="card-title m-0">Your history</h2>
+            <% if (hasFilters) { %>
+              <span class="badge badge-muted"><span class="dot"></span>Filters applied</span>
+            <% } %>
+          </div>
+
+          <p class="card-desc">Each estimate is distance × emission factor (indicative).</p>
+
+          <!-- Filters -->
+          <form method="GET" action="/journeys" class="inline mt-12 w-100 inline-between">
+            <div class="inline wrap">
+              <input
+                class="input w-260"
+                type="text"
+                name="query"
+                placeholder="Search origin / destination"
+                value="<%= filtersSafe.query || '' %>"
+              />
+
+              <select name="mode">
+                <option value="">All modes</option>
+                <% modesSafe.forEach(m => { %>
+                  <option value="<%= m._id %>" <%= String(filtersSafe.mode) === String(m._id) ? 'selected' : '' %>>
+                    <%= m.name %>
+                  </option>
+                <% }) %>
+              </select>
+
+              <select name="sort">
+                <option value="date_desc" <%= filtersSafe.sort === 'date_desc' ? 'selected' : '' %>>Newest first</option>
+                <option value="date_asc" <%= filtersSafe.sort === 'date_asc' ? 'selected' : '' %>>Oldest first</option>
+                <option value="emissions_desc" <%= filtersSafe.sort === 'emissions_desc' ? 'selected' : '' %>>Emissions: high → low</option>
+                <option value="emissions_asc" <%= filtersSafe.sort === 'emissions_asc' ? 'selected' : '' %>>Emissions: low → high</option>
+                <option value="distance_desc" <%= filtersSafe.sort === 'distance_desc' ? 'selected' : '' %>>Distance: high → low</option>
+                <option value="distance_asc" <%= filtersSafe.sort === 'distance_asc' ? 'selected' : '' %>>Distance: low → high</option>
+              </select>
+
+              <!-- When applying filters, start from page 1 -->
+              <input type="hidden" name="page" value="1">
+
+              <button class="btn btn-primary" type="submit">Apply</button>
+              <a class="btn btn-secondary" href="/journeys">Reset</a>
+            </div>
+          </form>
+        </div>
+
+        <a class="btn btn-primary" href="/journeys/new">+ New journey</a>
+      </div>
+
+      <div class="card-body">
+        <% if (!journeys || !journeys.length) { %>
+
+          <% if (hasFilters) { %>
+            <p class="help">
+              No journeys found
+              <% if (filtersSafe.query) { %>
+                for "<strong><%= filtersSafe.query %></strong>"
+              <% } %>
+              <% if (filtersSafe.mode) { %>
+                (mode filter applied)
+              <% } %>.
+              Try clearing filters or changing your search.
+            </p>
+
+            <p class="help mt-10">
+              <a class="btn btn-link" href="/journeys">Reset filters</a>
+            </p>
+          <% } else { %>
+            <p class="help">No journeys yet. Create your first journey to get started.</p>
+            <div class="inline mt-12">
+              <a class="btn btn-primary" href="/journeys/new">Create first journey</a>
+            </div>
+          <% } %>
+
+        <% } else { %>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Route</th>
+                  <th>Mode</th>
+                  <th>Distance (km)</th>
+                  <th>Factor (g/km)</th>
+                  <th>Emissions (g)</th>
+                  <th>Date</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% journeys.forEach(j => { %>
+                  <tr>
+                    <td><strong><%= j.origin %></strong> → <%= j.destination %></td>
+                    <td><%= j.modeRef?.name || '—' %></td>
+                    <td><%= fmt1(j.distanceKm) %></td>
+                    <td><%= fmt0(j.emissionFactorUsed) %></td>
+                    <td><strong><%= fmt0(j.estimatedEmissions) %></strong></td>
+                    <td><%= j.createdAt ? new Date(j.createdAt).toLocaleString() : '—' %></td>
+                    <td class="actions">
+                      <a class="btn btn-secondary" href="/journeys/<%= j._id %>">Details</a>
+
+                      <form method="POST" action="/journeys/<%= j._id %>/delete" class="inline-form">
+                        <input type="hidden" name="page" value="<%= currentPage %>">
+                        <input type="hidden" name="query" value="<%= filtersSafe.query || '' %>">
+                        <input type="hidden" name="mode" value="<%= filtersSafe.mode || '' %>">
+                        <input type="hidden" name="sort" value="<%= filtersSafe.sort || 'date_desc' %>">
+
+                        <button
+                          class="btn btn-danger"
+                          type="submit"
+                          data-confirm="Delete this journey?"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+
+          <% if (paginationSafe.totalPages > 1) { %>
+            <div class="pager mt-12">
+              <% if (paginationSafe.page > 1) { %>
+                <a class="btn btn-secondary" href="/journeys?page=<%= paginationSafe.page - 1 %>&<%= qs %>">← Prev</a>
+              <% } else { %>
+                <button class="btn btn-secondary" disabled>← Prev</button>
+              <% } %>
+
+              <span class="help mx-10">
+                Page <strong><%= paginationSafe.page %></strong> of <strong><%= paginationSafe.totalPages %></strong>
+                (<%= paginationSafe.total %> total)
+              </span>
+
+              <% if (paginationSafe.page < paginationSafe.totalPages) { %>
+                <a class="btn btn-secondary" href="/journeys?page=<%= paginationSafe.page + 1 %>&<%= qs %>">Next →</a>
+              <% } else { %>
+                <button class="btn btn-secondary" disabled>Next →</button>
+              <% } %>
+            </div>
+          <% } %>
+
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

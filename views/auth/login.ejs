@@ -1,0 +1,64 @@
+<%- include('../partials/head', { title: 'Login' }) %>
+<%- include('../partials/nav', { currentUser, isAdmin, active: 'login' }) %>
+
+<%
+  const v = (typeof values !== "undefined" && values) ? values : {};
+%>
+
+<main class="page">
+  <div class="container-wide">
+    <div class="page-header">
+      <h1 class="page-title">Sign in</h1>
+      <p class="page-subtitle">Access your journeys and track your estimated emissions.</p>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <div class="card maxw-560">
+      <div class="card-body">
+        <form method="POST" action="/login" novalidate>
+          <div class="form-row">
+            <label for="email">Email</label>
+            <input
+              class="input"
+              id="email"
+              name="email"
+              type="email"
+              required
+              autocomplete="email"
+              value="<%= v.email || '' %>"
+              autofocus
+            />
+          </div>
+
+          <div class="form-row">
+            <label for="password">Password</label>
+            <input
+              class="input"
+              id="password"
+              name="password"
+              type="password"
+              required
+              autocomplete="current-password"
+            />
+          </div>
+
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Login</button>
+            <a class="btn btn-secondary" href="/">Cancel</a>
+          </div>
+        </form>
+
+        <p class="help mt-14">
+          Don’t have an account? <a href="/register">Register</a>
+        </p>
+
+        <p class="help mt-10">
+          <a href="/forgot-password">Forgot password?</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

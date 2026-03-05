@@ -1,0 +1,157 @@
+<%- include('../partials/head', { title: 'Users' }) %>
+<%- include('../partials/nav', { currentUser, isAdmin, active: 'adminUsers' }) %>
+
+<%
+  const usersSafe = (typeof users !== "undefined" && users) ? users : [];
+  const paginationSafe =
+    (typeof pagination !== "undefined" && pagination)
+      ? pagination
+      : { page: 1, totalPages: 1, total: 0 };
+
+  const cu = (typeof currentUser !== "undefined" && currentUser) ? currentUser : null;
+  const currentPage = paginationSafe.page || 1;
+%>
+
+<main class="page">
+  <div class="container-wide">
+    <div class="page-header">
+      <h1 class="page-title">Users</h1>
+      <p class="page-subtitle">Manage account status to prevent misuse.</p>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">All users</h2>
+          <p class="card-desc">Deactivate, suspend, or delete accounts if needed.</p>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <% if (!usersSafe.length) { %>
+          <p class="help">No users found.</p>
+        <% } else { %>
+          <div class="table-wrap">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Change status</th>
+                  <th>Delete</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <% usersSafe.forEach(u => {
+                  const st = (u.status || 'active');
+                  const isSelf = cu && cu.id && (String(cu.id) === String(u._id));
+                  const role = (u.role || 'public');
+                %>
+                  <tr>
+                    <td><strong><%= u.name %></strong></td>
+                    <td><%= u.email %></td>
+
+                    <td>
+                      <span class="badge <%= role === 'admin' ? 'badge-warn' : 'badge-muted' %>">
+                        <span class="dot"></span><%= role %>
+                      </span>
+                    </td>
+
+                    <td>
+                      <span class="badge <%= st === 'active' ? 'badge-ok' : (st === 'suspended' ? 'badge-warn' : 'badge-muted') %>">
+                        <span class="dot"></span><%= st %>
+                      </span>
+                    </td>
+
+                    <td class="actions">
+                      <% if (isSelf) { %>
+                        <form method="POST" action="/admin/users/<%= u._id %>/status" class="inline-form">
+                          <input type="hidden" name="page" value="<%= currentPage %>">
+
+                          <select name="status" disabled>
+                            <option value="active" <%= st === "active" ? "selected" : "" %>>active</option>
+                            <option value="inactive" <%= st === "inactive" ? "selected" : "" %>>inactive</option>
+                            <option value="suspended" <%= st === "suspended" ? "selected" : "" %>>suspended</option>
+                          </select>
+
+                          <button class="btn btn-danger" type="submit" disabled>Update</button>
+                        </form>
+                      <% } else { %>
+                        <form method="POST" action="/admin/users/<%= u._id %>/status" class="inline-form">
+                          <input type="hidden" name="page" value="<%= currentPage %>">
+
+                          <select name="status">
+                            <option value="active" <%= st === "active" ? "selected" : "" %>>active</option>
+                            <option value="inactive" <%= st === "inactive" ? "selected" : "" %>>inactive</option>
+                            <option value="suspended" <%= st === "suspended" ? "selected" : "" %>>suspended</option>
+                          </select>
+
+                          <button
+                            class="btn btn-danger"
+                            type="submit"
+                            data-confirm="Change status for <%= u.email %>?"
+                          >
+                            Update
+                          </button>
+                        </form>
+                      <% } %>
+                    </td>
+
+                    <td class="actions">
+                      <% if (isSelf) { %>
+                        <button class="btn btn-danger" type="button" disabled>Delete</button>
+                      <% } else { %>
+                        <form method="POST" action="/admin/users/<%= u._id %>/delete" class="inline-form">
+                          <input type="hidden" name="page" value="<%= currentPage %>">
+                          <button
+                            class="btn btn-danger"
+                            type="submit"
+                            data-confirm="Delete user <%= u.email %> and ALL their journeys?"
+                          >
+                            Delete
+                          </button>
+                        </form>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+
+          <% if (paginationSafe.totalPages > 1) { %>
+            <div class="pager mt-12">
+              <% if (paginationSafe.page > 1) { %>
+                <a class="btn btn-secondary" href="/admin/users?page=<%= paginationSafe.page - 1 %>">← Prev</a>
+              <% } else { %>
+                <button class="btn btn-secondary" disabled>← Prev</button>
+              <% } %>
+
+              <span class="help mx-10">
+                Page <strong><%= paginationSafe.page %></strong> of <strong><%= paginationSafe.totalPages %></strong>
+                (<%= paginationSafe.total %> total)
+              </span>
+
+              <% if (paginationSafe.page < paginationSafe.totalPages) { %>
+                <a class="btn btn-secondary" href="/admin/users?page=<%= paginationSafe.page + 1 %>">Next →</a>
+              <% } else { %>
+                <button class="btn btn-secondary" disabled>Next →</button>
+              <% } %>
+            </div>
+          <% } %>
+
+          <p class="help mt-12">
+            Note: An Admin cannot disable or delete their own account.
+          </p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,90 @@
+<%#
+  Safe defaults for template variables.
+%>
+<%
+  const currentUserSafe =
+    (typeof currentUser !== "undefined" && currentUser) ? currentUser : null;
+
+  const isAdminSafe =
+    (typeof isAdmin !== "undefined" && isAdmin) ? true : false;
+
+  const activeSafe =
+    (typeof active !== "undefined" && active) ? active : "";
+%>
+
+<header class="topbar">
+  <div class="container-wide topbar-inner">
+    <a class="brand" href="<%= currentUserSafe ? (isAdminSafe ? '/admin/dashboard' : '/dashboard') : '/' %>">
+      <span class="brand-badge">GR</span>
+      <span>GreenRoute</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <% if (!currentUserSafe) { %>
+        <a class="<%= activeSafe==='home' ? 'active' : '' %>" href="/">Home</a>
+        <a class="<%= activeSafe==='login' ? 'active' : '' %>" href="/login">Login</a>
+        <a class="<%= activeSafe==='register' ? 'active' : '' %>" href="/register">Register</a>
+      <% } else if (!isAdminSafe) { %>
+        <a class="<%= activeSafe==='dashboard' ? 'active' : '' %>" href="/dashboard">Dashboard</a>
+        <a class="<%= activeSafe==='journeys' ? 'active' : '' %>" href="/journeys">Journeys</a>
+        <a class="<%= activeSafe==='newJourney' ? 'active' : '' %>" href="/journeys/new">New journey</a>
+      <% } else { %>
+        <a class="<%= activeSafe==='adminDashboard' ? 'active' : '' %>" href="/admin/dashboard">Admin dashboard</a>
+        <a class="<%= activeSafe==='adminModes' ? 'active' : '' %>" href="/admin/modes">Modes</a>
+        <a class="<%= activeSafe==='adminJourneys' ? 'active' : '' %>" href="/admin/journeys">Journeys</a>
+        <a class="<%= activeSafe==='adminUsers' ? 'active' : '' %>" href="/admin/users">Users</a>
+      <% } %>
+    </nav>
+
+    <div class="nav-right">
+      <button class="burger" type="button" data-burger aria-expanded="false" aria-controls="mobileDrawer">
+        Menu
+      </button>
+
+      <% if (currentUserSafe) { %>
+        <div class="user-pill" title="Signed in">
+          <span class="user-dot"></span>
+          <div class="user-meta">
+            <strong>Hi <%= currentUserSafe.name || 'User' %></strong>
+            <small><%= isAdminSafe ? 'Admin' : 'Public user' %></small>
+          </div>
+        </div>
+
+        <form method="POST" action="/logout" class="inline-form">
+          <button class="btn btn-secondary" type="submit">Logout</button>
+        </form>
+      <% } else { %>
+        <a class="btn btn-secondary" href="/login">Login</a>
+      <% } %>
+    </div>
+  </div>
+
+  <div id="mobileDrawer" class="mobile-drawer" data-drawer>
+    <div class="container-wide">
+      <div class="mobile-links">
+        <% if (!currentUserSafe) { %>
+          <a class="<%= activeSafe==='home' ? 'active' : '' %>" href="/">Home</a>
+          <a class="<%= activeSafe==='login' ? 'active' : '' %>" href="/login">Login</a>
+          <a class="<%= activeSafe==='register' ? 'active' : '' %>" href="/register">Register</a>
+        <% } else if (!isAdminSafe) { %>
+          <a class="<%= activeSafe==='dashboard' ? 'active' : '' %>" href="/dashboard">Dashboard</a>
+          <a class="<%= activeSafe==='journeys' ? 'active' : '' %>" href="/journeys">Journeys</a>
+          <a class="<%= activeSafe==='newJourney' ? 'active' : '' %>" href="/journeys/new">New journey</a>
+
+          <form method="POST" action="/logout" class="mt-10">
+            <button class="btn btn-secondary" type="submit">Logout</button>
+          </form>
+        <% } else { %>
+          <a class="<%= activeSafe==='adminDashboard' ? 'active' : '' %>" href="/admin/dashboard">Admin dashboard</a>
+          <a class="<%= activeSafe==='adminModes' ? 'active' : '' %>" href="/admin/modes">Modes</a>
+          <a class="<%= activeSafe==='adminJourneys' ? 'active' : '' %>" href="/admin/journeys">Journeys</a>
+          <a class="<%= activeSafe==='adminUsers' ? 'active' : '' %>" href="/admin/users">Users</a>
+
+          <form method="POST" action="/logout" class="mt-10">
+            <button class="btn btn-secondary" type="submit">Logout</button>
+          </form>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</header>

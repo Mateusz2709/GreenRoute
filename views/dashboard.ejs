@@ -1,0 +1,98 @@
+<%- include('partials/head', { title: 'Dashboard' }) %>
+<%- include('partials/nav', { currentUser, isAdmin, active: 'dashboard' }) %>
+
+<%
+  // Small helpers for nicer output
+  const fmt0 = (n) => (Number.isFinite(Number(n)) ? Number(n).toLocaleString() : "0");
+  const fmt1 = (n) => (Number.isFinite(Number(n)) ? Number(n).toFixed(1) : "—");
+%>
+
+<main class="page">
+  <div class="container-wide">
+    <div class="page-header">
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-subtitle">Quick overview of your journeys and estimated emissions.</p>
+    </div>
+
+    <%- include('partials/alerts') %>
+
+    <div class="grid grid-3">
+      <div class="card stat">
+        <div class="label">Total journeys</div>
+        <div class="value"><%= fmt0(stats?.totalJourneys ?? 0) %></div>
+        <div class="hint">Saved in your history</div>
+      </div>
+
+      <div class="card stat">
+        <div class="label">Last journey emissions</div>
+        <div class="value">
+          <%= (stats && stats.lastEmissions != null) ? `${fmt0(stats.lastEmissions)} g` : '—' %>
+        </div>
+        <div class="hint">Most recent saved journey</div>
+      </div>
+
+      <div class="card stat">
+        <div class="label">Lowest-emission mode</div>
+        <div class="value"><%= stats?.bestMode ?? '—' %></div>
+        <div class="hint">Based on your journeys</div>
+      </div>
+    </div>
+
+    <div class="card mt-18">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Quick action</h2>
+          <p class="card-desc">Create a new journey and see an estimate instantly.</p>
+        </div>
+        <a class="btn btn-primary" href="/journeys/new">+ New journey</a>
+      </div>
+
+      <div class="card-body">
+        <h3 class="card-title m-0 mb-10">Recent journeys</h3>
+
+        <% if (!recentJourneys || !recentJourneys.length) { %>
+          <p class="help">No journeys yet. Create your first one to get started.</p>
+          <div class="inline mt-12">
+            <a class="btn btn-primary" href="/journeys/new">Create first journey</a>
+            <a class="btn btn-secondary" href="/journeys">View history</a>
+          </div>
+        <% } else { %>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Route</th>
+                  <th>Mode</th>
+                  <th>Distance (km)</th>
+                  <th>Emissions (g CO₂e)</th>
+                  <th>Date</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% recentJourneys.forEach(j => { %>
+                  <tr>
+                    <td><strong><%= j.origin %></strong> → <%= j.destination %></td>
+                    <td><%= j.modeRef?.name || '—' %></td>
+                    <td><%= Number.isFinite(Number(j.distanceKm)) ? fmt1(j.distanceKm) : '—' %></td>
+                    <td><%= Number.isFinite(Number(j.estimatedEmissions)) ? fmt0(j.estimatedEmissions) : '—' %></td>
+                    <td><%= j.createdAt ? new Date(j.createdAt).toLocaleString() : '—' %></td>
+                    <td class="actions">
+                      <a class="btn btn-secondary" href="/journeys/<%= j._id %>">Details</a>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="inline inline-end mt-12">
+            <a class="btn btn-secondary" href="/journeys">View all journeys</a>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
